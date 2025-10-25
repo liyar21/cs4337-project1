@@ -1,16 +1,55 @@
 #lang racket
+;; Version 7 — Recursive Prefix Evaluator (Progressive upgrade)
+;; -------------------------------------------------------------
+;; Builds on Version 6.2
+;; Adds full prefix parsing (nested +, *, /, unary -)
+;; Adds $n history recall and integer division (quotient)
+;; Follows all CS4337 Project 1 requirements
+
 (require "mode.rkt")
 
 ;; ---------- Helper Functions ----------
 (define (to-float n) (real->double-flonum n))
 
-(define (to-number s)
-  (string->number (string-trim s)))
+(define (skip-space chars)
+  (cond [(null? chars) chars]
+        [(char-whitespace? (car chars)) (skip-space (cdr chars))]
+        [else chars]))
 
-(define (clean-tokens tokens)
-  (filter (lambda (x) (not (string=? x ""))) (map string-trim tokens)))
+(define (read-digits chars)
+  (let loop ([c chars] [acc '()])
+    (cond
+      [(and (pair? c) (char-numeric? (car c)))
+       (loop (cdr c) (cons (car c) acc))]
+      [else
+       (if (null? acc)
+           #f
+           (cons (string->number (list->string (reverse acc))) c))])))
 
-;; Retrieve value from history list using 1-based id
+(define (read-int chars)
+  (define chars* (skip-space chars))
+  (cond
+    [(null? chars*) #f]
+    [else
+     (define first (car chars*))
+     (cond
+       [(char-numeric? first)
+        (read-digits chars*)]
+       [(char=? first #\-)
+        (let ([after (cdr chars*)])
+          (if (and (pair? after) (char-numeric? (car after)))
+              (let ([res (read-digits after)])
+                (cons (- (car res)) (cdr res)))
+              #f))]
+       [else #f])]))
+
+(define (read-dollar chars)
+  (define chars* (skip-space chars))
+  (if (and (pair? chars*) (char=? (car chars*) #\$))
+      (let ([res (read-digits (skip-space (cdr chars*)))])
+        (if res res #f))
+      #f))
+
 (define (get-history hist id)
   (define rev (reverse hist))
   (if (and (integer? id)
@@ -19,40 +58,51 @@
       (list-ref rev (- id 1))
       (error 'history "invalid id")))
 
-;; ---------- Evaluator ----------
-(define (eval-line line hist)
-  (define tokens (clean-tokens (string-split line)))
+;; ---------- Recursive Evaluator ----------
+(define (eval-expr chars hist)
+  (define chars* (skip-space chars))
   (cond
-    [(= (length tokens) 3)
-     (define op (list-ref tokens 0))
-     (define a-str (string-trim (list-ref tokens 1)))
-     (define b-str (string-trim (list-ref tokens 2)))
-
-     ;; --- Handle $ history references safely ---
-     (define a
-       (if (and (> (string-length a-str) 1)
-                (char=? (string-ref a-str 0) #\$))
-           (get-history hist (string->number (substring a-str 1)))
-           (to-number a-str)))
-
-     (define b
-       (if (and (> (string-length b-str) 1)
-                (char=? (string-ref b-str 0) #\$))
-           (get-history hist (string->number (substring b-str 1)))
-           (to-number b-str)))
-
+    [(null? chars*) (error 'parse "unexpected end of input")]
+    [else
+     (define first (car chars*))
      (cond
-       [(string=? op "+") (+ a b)]
-       [(string=? op "-") (- a b)]
-       [(string=? op "*") (* a b)]
-       [(string=? op "/")
-        (if (zero? b)
-            (error 'eval "divide by zero")
-            (/ a b))]
-       [else (error 'parse "unsupported operator")])]
-    [else (error 'parse "invalid format")]))
+       [(or (char=? first #\+) (char=? first #\*) (char=? first #\/))
+        (define v1+rest (eval-expr (cdr chars*) hist))
+        (define v1 (car v1+rest))
+        (define rest1 (cdr v1+rest))
+        (define v2+rest (eval-expr rest1 hist))
+        (define v2 (car v2+rest))
+        (define rest2 (cdr v2+rest))
+        (cond
+          [(char=? first #\+) (cons (+ v1 v2) rest2)]
+          [(char=? first #\*) (cons (* v1 v2) rest2)]
+          [(char=? first #\/)
+           (when (zero? v2) (error 'eval "divide by zero"))
+           (cons (quotient v1 v2) rest2)])]
 
-;; ---------- Main Loop ----------
+       [(char=? first #\-)
+        (define res (read-int chars*))
+        (if res
+            res
+            (let ([v+rest (eval-expr (cdr chars*) hist)])
+              (cons (- (car v+rest)) (cdr v+rest))))]
+
+       [(char=? first #\$)
+        (define res (read-dollar chars*))
+        (if res
+            (cons (get-history hist (car res)) (cdr res))
+            (error 'parse "bad $ format"))]
+
+       [(char-numeric? first)
+        (define res (read-int chars*))
+        (if res res (error 'parse "bad number"))]
+
+       [else (error 'parse "invalid token")])]))
+
+(define (done? rest)
+  (null? (skip-space rest)))
+
+;; ---------- REPL Loop ----------
 (define (repl hist)
   (when prompt? (display "> "))
   (define line (read-line))
@@ -64,9 +114,14 @@
                       (lambda (e)
                         (displayln "Error: Invalid Expression")
                         (repl hist))])
-       (define result (eval-line line hist))
+       (define chars (string->list line))
+       (define result+rest (eval-expr chars hist))
+       (define result (car result+rest))
+       (define rest (cdr result+rest))
+       (when (and rest (not (done? rest)))
+         (error 'parse "extra input"))
        (define new-hist (cons result hist))
-       (define id (length (reverse new-hist)))
+       (define id (length new-hist))
        (display id)
        (display ": ")
        (display (to-float result))
