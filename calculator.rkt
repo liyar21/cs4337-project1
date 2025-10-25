@@ -1,20 +1,33 @@
 #lang racket
-;; Version 1 - Initial skeleton setup
-;; Goal: create a simple calculator loop structure
-;; (No parsing yet, just reads user input and echoes it)
+(require "mode.rkt")
 
-(require "mode.rkt") ; defines prompt?
+;; Convert string input into a number if possible
+(define (to-number s)
+  (string->number s))
+
+;; Evaluate simple expressions split by spaces
+(define (eval-line line)
+  (define tokens (string-split line))
+  (cond
+    [(= (length tokens) 3)
+     (define op (list-ref tokens 0))
+     (define a (to-number (list-ref tokens 1)))
+     (define b (to-number (list-ref tokens 2)))
+     (cond
+       [(string=? op "+") (+ a b)]
+       [else "Unsupported operator"])]
+    [else "Invalid format"]))
 
 (define (repl hist)
-  (when prompt? (display "> "))  ; show prompt only if interactive
+  (when prompt? (display "> "))
   (define line (read-line))
   (cond
-    [(eof-object? line) (void)]     ; quit on Ctrl+D / EOF
-    [(string=? line "quit") (void)] ; quit command
+    [(eof-object? line) (void)]
+    [(string=? line "quit") (void)]
     [else
-     (displayln (string-append "You typed: " line))
+     (define result (eval-line line))
+     (displayln result)
      (repl hist)]))
 
-;; start the calculator
 (repl '())
 

@@ -21,3 +21,8 @@ Plan: add mode.rkt and calculator.rkt, run tests
 - Changes Made: Added loop to show prompt and read input, Echoes user input, Handles quit and EOF.
 - Issues/Notes:No math or parsing yet.
 
+##10-25-25 11:30 am
+- Changes Made:
+  - Added function `eval-line` to handle space-separated inputs.
+  - Added `+` operation for two numbers.
+  - Program can now evaluate inputs like "+ 2 3".
