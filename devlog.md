@@ -25,10 +25,13 @@ Plan: add mode.rkt and calculator.rkt, run tests
 - Changes Made:
   - Added function `eval-line` to handle space-separated inputs.
   - Added `+` operation for two numbers.
-  - Program can now evaluate inputs like "+ 2 3".
 
 ##10-25-25 12:10 pm
 - Changes Made:
   - Added -, *, / operators.
   - Implemented divide-by-zero check.
-  - Calculator can now handle +, -, *, and / expressions.
+
+##10-25-25 12:40 pm
+- Changes Made:
+  - Added tokens to remove empty spaces.
+  - Modified parsing to accept negative values.
