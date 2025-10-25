@@ -1,11 +1,10 @@
 #lang racket
 (require "mode.rkt")
 
-;; Convert string input into a number if possible
 (define (to-number s)
   (string->number s))
 
-;; Evaluate simple expressions split by spaces
+;; Simple evaluator for +, -, *, /
 (define (eval-line line)
   (define tokens (string-split line))
   (cond
@@ -15,8 +14,14 @@
      (define b (to-number (list-ref tokens 2)))
      (cond
        [(string=? op "+") (+ a b)]
+       [(string=? op "-") (- a b)]
+       [(string=? op "*") (* a b)]
+       [(string=? op "/")
+        (if (zero? b)
+            "Error: divide by zero"
+            (/ a b))]
        [else "Unsupported operator"])]
-    [else "Invalid format"]))
+    [else "Invalid format, must be: + a b or - a b or * a b or / a b etc."]))
 
 (define (repl hist)
   (when prompt? (display "> "))
