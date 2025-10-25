@@ -57,3 +57,6 @@ Plan: add mode.rkt and calculator.rkt, run tests
   - Added floating-point conversion with real->double-flonum.
 
   - failed parsing for the lines with $
+
+##10-25-25 4:10pm
+- fixed batch input parsing and $n history handling
