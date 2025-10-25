@@ -1,4 +1,6 @@
 #lang racket
+(provide prompt?)
+
 (define prompt?
    (let [(args (current-command-line-arguments))]
      (cond
@@ -6,4 +8,3 @@
        [(string=? (vector-ref args 0) "-b") #f]
        [(string=? (vector-ref args 0) "--batch") #f]
        [else #t])))
-
