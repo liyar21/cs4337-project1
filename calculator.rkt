@@ -1,10 +1,4 @@
 #lang racket
-;; Version 7 — Recursive Prefix Evaluator (Progressive upgrade)
-;; -------------------------------------------------------------
-;; Builds on Version 6.2
-;; Adds full prefix parsing (nested +, *, /, unary -)
-;; Adds $n history recall and integer division (quotient)
-;; Follows all CS4337 Project 1 requirements
 
 (require "mode.rkt")
 
