@@ -40,3 +40,20 @@ Plan: add mode.rkt and calculator.rkt, run tests
 - Changes Made:
   - Updated number parsing to accept negative values.
   - Simplified REPL structure for easier testing.
+
+##10-25-25 1:23pm
+- Realized that $1 will recall the oldest result instead of the most recent - forgot to reverse history
+  - Didn't update history list each loop
+  - The calculator won't remember new results across lines.
+
+##10-25-25 2:27pm
+- Changes Made:
+  - Added history tracking to `repl`.
+  - Implemented `$n` syntax for recalling results.
+  - History now updates with each new calculation.
+
+  - History is now passed as a parameter and updated using (cons val hist).
+  - Each result is displayed with an ID format like "id: value".
+  - Added floating-point conversion with real->double-flonum.
+
+  - failed parsing for the lines with $
