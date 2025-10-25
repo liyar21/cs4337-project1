@@ -15,3 +15,9 @@ Plan: add mode.rkt and calculator.rkt, run tests
 
 ##10-25-25 1:10 am
 - Early working draft of calculator.rkt; still has error and needs fix in multiple areas
+
+##10-25-25 1:51 am
+- Starting over from the scratchGoal: Set up a simple calculator base.
+- Changes Made: Added loop to show prompt and read input, Echoes user input, Handles quit and EOF.
+- Issues/Notes:No math or parsing yet.
+
