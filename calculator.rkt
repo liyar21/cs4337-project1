@@ -1,23 +1,34 @@
 #lang racket
 (require "mode.rkt")
 
-;; Convert string input into a number if possible
 (define (to-number s)
   (string->number s))
 
-;; Remove empty tokens caused by extra spaces
 (define (clean-tokens tokens)
   (filter (lambda (x) (not (string=? x ""))) tokens))
 
-;; Evaluate expressions (+ a b), (- a b), etc.
-(define (eval-line line)
-  (define raw-tokens (string-split line " "))
-  (define tokens (clean-tokens raw-tokens))
+;;$1 gives latest
+(define (get-history hist n)
+  (if (and (integer? n)
+           (>= n 1)
+           (<= n (length hist)))
+      (list-ref hist (- n 1)) ; should have used (reverse hist)
+      (error 'history "Invalid $ index")))
+
+;; Evaluate expressions, including $n references
+(define (eval-line line hist)
+  (define tokens (clean-tokens (string-split line " ")))
   (cond
     [(= (length tokens) 3)
      (define op (list-ref tokens 0))
-     (define a (to-number (list-ref tokens 1)))
-     (define b (to-number (list-ref tokens 2)))
+     (define a-str (list-ref tokens 1))
+     (define b-str (list-ref tokens 2))
+     (define a (if (string-prefix? "$" a-str)
+                   (get-history hist (string->number (substring a-str 1)))
+                   (to-number a-str)))
+     (define b (if (string-prefix? "$" b-str)
+                   (get-history hist (string->number (substring b-str 1)))
+                   (to-number b-str)))
      (cond
        [(string=? op "+") (+ a b)]
        [(string=? op "-") (- a b)]
@@ -27,8 +38,9 @@
             "Error: divide by zero"
             (/ a b))]
        [else "Unsupported operator"])]
-    [else "Invalid input or missing arguments"]))
+    [else "Invalid input format"]))
 
+;;update history list each loop
 (define (repl hist)
   (when prompt? (display "> "))
   (define line (read-line))
@@ -36,9 +48,10 @@
     [(eof-object? line) (void)]
     [(string=? line "quit") (void)]
     [else
-     (define result (eval-line line))
+     (define result (with-handlers ([exn:fail? (lambda (e) "Error: bad expression")])
+                      (eval-line line hist)))
      (displayln result)
-     (repl hist)]))
+     (repl hist)])) 
 
 (repl '())
 

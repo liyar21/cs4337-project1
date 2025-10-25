@@ -35,3 +35,8 @@ Plan: add mode.rkt and calculator.rkt, run tests
 - Changes Made:
   - Added tokens to remove empty spaces.
   - Modified parsing to accept negative values.
+
+##10-25-25 1:10 pm
+- Changes Made:
+  - Updated number parsing to accept negative values.
+  - Simplified REPL structure for easier testing.
