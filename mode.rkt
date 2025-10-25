@@ -1,3 +1,4 @@
+#lang racket
 (define prompt?
    (let [(args (current-command-line-arguments))]
      (cond
