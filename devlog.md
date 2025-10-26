@@ -66,3 +66,14 @@ Plan: add mode.rkt and calculator.rkt, run tests
 - Added unary negation and integer division.
 - Got $n history recall and nested ops working.
 - Kept both modes running fine with solid error handling.
+
+##10-25-25 6:54pm
+- Replaced 3-token flat parser with recursive evaluator (supports nested expressions).
+- Added check for leftover text
+- Cleaned comments and code for readability.
+- Confirmed full support for +, *, /, -, and $n history recall.
+- Verified works in both interactive and batch modes.
+
+##10-25-25 7:58pm
+- readME file
+- final checks
